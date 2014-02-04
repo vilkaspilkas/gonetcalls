@@ -1,4 +1,4 @@
 gonetcalls
 ==========
 
-Library with various network related calls
+GO Library with various network related calls
