@@ -3,6 +3,7 @@ package gonetcalls
 import (
     "time"
     "bytes"
+    "net"
     "net/http"
     "io/ioutil"
 )
@@ -65,4 +66,20 @@ func HttpGet(url string, headers []string) (code int, clen, rtt int64, body stri
     body = string(rbody)
     rtt = int64(time.Since(startTime).Nanoseconds()/1000)
     return code, clen, rtt, body, resp.Header, ""
+}
+
+func UdpSend(host, port, msg string) (error) {
+    dst, err := net.ResolveUDPAddr("udp", host + ":" + port)
+    if err != nil {
+        return err
+    }
+    con, err := net.DialUDP("udp", nil, dst)
+    if err != nil {
+        return err
+    }
+    _,err = con.Write([]byte(msg))
+    if err != nil {
+        return err
+    }
+    return nil
 }
