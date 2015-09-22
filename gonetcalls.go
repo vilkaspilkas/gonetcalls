@@ -8,7 +8,7 @@ import (
     "io/ioutil"
 )
 
-func HttpPost(url string, headers map[string]string, data *bytes.Buffer) (code int, clen, rtt int64, body string, rheaders http.Header, err_ret string) {
+func HttpPost(url string, headers map[string]string, data *bytes.Buffer) (code int, clen, rtt int64, body string, rheaders http.Header, err_ret error) {
     startTime := time.Now()
     client := &http.Client{}
 
@@ -16,7 +16,7 @@ func HttpPost(url string, headers map[string]string, data *bytes.Buffer) (code i
     req, err := http.NewRequest("POST", url, data)
     if err != nil {
         rtt = int64(time.Since(startTime).Nanoseconds()/1000)
-        return 0, 0, rtt, "", nil, "Failed to create http request." + err.Error()
+        return 0, 0, rtt, "", nil, err
     }
 
     for hname,hvalue := range(headers) {
@@ -27,7 +27,7 @@ func HttpPost(url string, headers map[string]string, data *bytes.Buffer) (code i
     resp,err := client.Do(req)
     if err != nil {
         rtt = int64(time.Since(startTime).Nanoseconds()/1000)
-        return 0, 0, rtt, "", nil, "Failed to get response from server." + err.Error()
+        return 0, 0, rtt, "", nil, err
     }
 
     //Process the response
@@ -37,17 +37,17 @@ func HttpPost(url string, headers map[string]string, data *bytes.Buffer) (code i
     rbody, errb := ioutil.ReadAll(resp.Body)
     if errb != nil {
         rtt = int64(time.Since(startTime).Nanoseconds()/1000)
-        return code, clen, rtt, "", nil, "Failed reading response body." + errb.Error()
+        return code, clen, rtt, "", nil, errb
     }
     body = string(rbody)
     if clen == -1 {
         clen = int64(len(body))
     }
     rtt = int64(time.Since(startTime).Nanoseconds()/1000)
-    return code, clen, rtt, body, resp.Header, ""
+    return code, clen, rtt, body, resp.Header, nil
 }
 
-func HttpGet(url string, headers map[string]string) (code int, clen, rtt int64, body string, rheaders http.Header, err_ret string) {
+func HttpGet(url string, headers map[string]string) (code int, clen, rtt int64, body string, rheaders http.Header, err_ret error) {
     startTime := time.Now()
 
     client := &http.Client{}
@@ -59,7 +59,7 @@ func HttpGet(url string, headers map[string]string) (code int, clen, rtt int64, 
 
     if err != nil {
         rtt = int64(time.Since(startTime).Nanoseconds()/1000)
-        return 0, 0, rtt, "", nil, "Failed to get response from server." + err.Error()
+        return 0, 0, rtt, "", nil, err
     }
 
     code = resp.StatusCode
@@ -68,11 +68,11 @@ func HttpGet(url string, headers map[string]string) (code int, clen, rtt int64, 
     rbody, errb := ioutil.ReadAll(resp.Body)
     if errb != nil {
         rtt = int64(time.Since(startTime).Nanoseconds()/1000)
-        return code, clen, rtt, "", nil, "Failed reading response body." + errb.Error()
+        return code, clen, rtt, "", nil, errb
     }
     body = string(rbody)
     rtt = int64(time.Since(startTime).Nanoseconds()/1000)
-    return code, clen, rtt, body, resp.Header, ""
+    return code, clen, rtt, body, resp.Header, nil
 }
 
 func UdpSend(host, port, msg string) (error) {
